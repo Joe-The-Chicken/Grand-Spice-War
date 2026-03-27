@@ -12,7 +12,7 @@ export let cameraY = (0.5 * MAP_H) * (0.5 * zoom);
 console.log(cameraY);
 
 const keysPressed = {};
-const cameraSpeed = 10;
+const cameraSpeed = 5;
 
 export function setupInput() {
     function updateCursor(e) {
@@ -89,13 +89,15 @@ export function setupInput() {
     window.addEventListener("keyup", handleKeyUp);
 }
 
-export function updateCamera() {
+export function updateCamera(dt) {
     let cs;
 
+    dt = dt / 16;
+
     if(keysPressed['shift']) {
-        cs = cameraSpeed * 2;
+        cs = cameraSpeed * 2 * dt;
     } else {
-        cs = cameraSpeed;
+        cs = cameraSpeed * dt;
     }
 
     if (keysPressed['w'] || keysPressed['arrowup']) {

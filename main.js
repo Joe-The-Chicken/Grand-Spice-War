@@ -11,11 +11,16 @@ updateScale();
 initWorld(Math.random() * 1234128);
 setupInput(canvas);
 
-function loop() {
-    updateCamera();
+let lastTime = performance.now();
+
+function loop(now) {
+    const dt = now - lastTime;
+    lastTime = now;
+
+    updateCamera(dt);
     draw(cameraX, cameraY);
     drawUI();
     requestAnimationFrame(loop);
 }
 
-loop();
+loop(lastTime);

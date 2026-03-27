@@ -76,6 +76,7 @@ function initGrid() {
                         world[y][x].build = "nature" + (4 + Math.ceil(Math.random() * 2));
                     }
                 }
+                
             }
         }
     }

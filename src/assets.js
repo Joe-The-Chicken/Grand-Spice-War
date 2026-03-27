@@ -12,17 +12,18 @@ export const assets = {
     ui: {},
 };
 
-// dependencies
+// misc
 assets.misc.cursor = loadImage("assets/cursor.png");
 
 // ground
+assets.tile.void = loadImage("assets/tile_0.png");
 assets.tile.grass = loadImage("assets/tile_1.png");
-assets.tile.stone = loadImage("assets/tile_2.png");
-assets.tile.water = loadImage("assets/tile_3.png");
-assets.tile.sand = loadImage("assets/tile_4.png");
-assets.tile.water_dark = loadImage("assets/tile_7.png");
-assets.tile.water_darker = loadImage("assets/tile_6.png");
-
+assets.tile.dirt = loadImage("assets/tile_2.png");
+assets.tile.sand = loadImage("assets/tile_3.png");
+assets.tile.stone = loadImage("assets/tile_4.png");
+assets.tile.water = loadImage("assets/tile_5.png");
+assets.tile.water_dark = loadImage("assets/tile_6.png");
+assets.tile.water_darker = loadImage("assets/tile_7.png");
 
 // builds
 assets.build.nature1 = loadImage("assets/nature_1.png");
