@@ -6,13 +6,19 @@ import { world } from "./world.js";
 export let mouseX = 0;
 export let mouseY = 0;
 export let hoverTile = null;
+export let cameraX = 0;
+export let cameraY = (0.5 * MAP_H) * (0.5 * zoom);
+console.log(cameraY);
+
+const keysPressed = {};
+const cameraSpeed = 15;
 
 export function setupInput() {
     function updateCursor(e) {
         mouseX = e.clientX;
         mouseY = e.clientY - IMAGE_H + TILE_H;
 
-        const tile = isoToCart(mouseX, mouseY);
+        const tile = isoToCart(mouseX + cameraX, mouseY + cameraY);
 
         if (tile.x >= 0 && tile.y >= 0 && tile.x < MAP_W && tile.y < MAP_H) {
             hoverTile = tile;
@@ -24,18 +30,37 @@ export function setupInput() {
     function updateZoom(e) {
         e.preventDefault();
 
-        let z = zoom;
-
         const zoomSpeed = 1.1;
+        const oldZoom = zoom;
+        let newZoom = zoom;
 
-        if (e.deltaY < 0) {
-            z *= zoomSpeed;
-        } else {
-            z /= zoomSpeed;
-        }
+        if (e.deltaY < 0) newZoom *= zoomSpeed;
+        else newZoom /= zoomSpeed;
 
-        // clamp zoom
-        setZoom(Math.max(MAX_SCALE, Math.min(MIN_SCALE, z)));
+        newZoom = Math.max(MAX_SCALE, Math.min(MIN_SCALE, newZoom));
+
+        const centerScreenX = 0;
+        const centerScreenY = (canvas.height / 3);
+
+        // Get the world point at screen center before zoom
+        const worldX = (centerScreenX + cameraX) / oldZoom;
+        const worldY = (centerScreenY + cameraY) / oldZoom;
+
+        setZoom(newZoom);
+
+        // Adjust camera so world point stays at screen center after zoom
+        cameraX = worldX * newZoom - centerScreenX;
+        cameraY = worldY * newZoom - centerScreenY;
+
+        updateScale();
+    }
+
+    function handleKeyDown(e) {
+        keysPressed[e.key.toLowerCase()] = true;
+    }
+
+    function handleKeyUp(e) {
+        keysPressed[e.key.toLowerCase()] = false;
     }
 
     canvas.addEventListener("mousemove", (e) => {
@@ -44,7 +69,7 @@ export function setupInput() {
 
     canvas.addEventListener("click", () => {
         if (hoverTile) {
-            world[hoverTile.y][hoverTile.x].build = "house1";
+            world[hoverTile.y][hoverTile.x].build = "house" + Math.ceil(Math.random() * 6);
         }
     });
 
@@ -53,5 +78,22 @@ export function setupInput() {
         updateCursor(e);
         updateScale();
     });
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
 }
 
+export function updateCamera() {
+    if (keysPressed['w'] || keysPressed['arrowup']) {
+        cameraY -= cameraSpeed;
+    }
+    if (keysPressed['s'] || keysPressed['arrowdown']) {
+        cameraY += cameraSpeed;
+    }
+    if (keysPressed['a'] || keysPressed['arrowleft']) {
+        cameraX -= cameraSpeed;
+    }
+    if (keysPressed['d'] || keysPressed['arrowright']) {
+        cameraX += cameraSpeed;
+    }
+}
