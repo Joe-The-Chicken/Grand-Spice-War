@@ -8,14 +8,20 @@ let heightmap1 = makeNoise2D(randInt(1, 99999999), 0.01);
 let heightmap2 = makeNoise2D(randInt(1, 99999999), 0.03);
 let heightmap3 = makeNoise2D(randInt(1, 99999999), 0.09);
 let heightmap = function(x,y) {
-    return (6*heightmap1(x,y) + 3*heightmap2(x,y) + heightmap3(x,y)) / 10;
+    let x1 = x + 1000;
+    let y1 = y + 1000;
+    
+    return (6*heightmap1(x1,y1) + 3*heightmap2(x1,y1) + heightmap3(x1,y1)) / 10;
 }
 
 let biomemap1 = makeNoise2D(randInt(1, 99999999), 0.01);
 let biomemap2 = makeNoise2D(randInt(1, 99999999), 0.05);
 let biomemap3 = makeNoise2D(randInt(1, 99999999), 0.15);
 let biomemap = function(x,y) {
-    return (3*biomemap1(x,y) + 2*biomemap2(x,y) + biomemap3(x,y)) / 6;
+    let x1 = x + 1000;
+    let y1 = y + 1000;
+
+    return (3*biomemap1(x1,y1) + 2*biomemap2(x1,y1) + biomemap3(x1,y1)) / 6;
 }
 
 export function initWorld(seed) {
@@ -46,6 +52,7 @@ function initGrid() {
                 height: heightmap(x, y),
                 tile: "",
                 build: "",
+                buildRot: null,
             };
         }
     }

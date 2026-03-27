@@ -2,7 +2,7 @@ import { draw } from "./src/render.js";
 import { drawUI } from "./src/ui.js";
 import { canvas, updateScale } from "./src/config.js";
 import { initWorld } from "./src/world.js";
-import { cameraX, cameraY, setupInput, updateCamera } from "./src/input.js";
+import { cameraX, cameraY, setupInput, updateControls } from "./src/input.js";
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -17,7 +17,7 @@ function loop(now) {
     const dt = now - lastTime;
     lastTime = now;
 
-    updateCamera(dt);
+    updateControls(dt);
     draw(cameraX, cameraY);
     drawUI();
     requestAnimationFrame(loop);

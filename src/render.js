@@ -1,5 +1,5 @@
 import { canvas, ctx, IMAGE_W, IMAGE_H, TILE_W, TILE_H, MAP_W, MAP_H, offsetX, offsetY, zoom } from "./config.js";
-import { hoverTile, cameraX, cameraY } from "./input.js";
+import { hoverTile, cameraX, cameraY, selectedBuild, selectedRot } from "./input.js";
 import { assets } from "./assets.js";
 import { cartToIso, isoToCart } from "./iso.js"
 import { world } from "./world.js";
@@ -64,13 +64,13 @@ export function draw(cx, cy) {
 
     if(!world[y][x].tile) return;
 
-    if(zoom > 32) {
-        if(world[y][x].tile.startsWith("water")) {
-            drawY += waves[x];
-        }
+    if(world[y][x].tile.startsWith("water")) {
+        drawY += waves[x];
     }
     
-    ctx.drawImage(assets.misc.cursor, drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+    if(!selectedBuild) {
+        ctx.drawImage(assets.misc.cursor, drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+    }
 }
 
 function renderAt(x,y,cx,cy) {
@@ -84,24 +84,35 @@ function renderAt(x,y,cx,cy) {
         return;
     }
     
-    if(zoom > 32) {
-        if(world[y][x].tile.startsWith("water")) {
-            drawY += waves[x];
-        }
+    if(world[y][x].tile.startsWith("water")) {
+        drawY += waves[x];
     }
-
     
     ctx.drawImage(assets.tile[world[y][x].tile], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
 
+    if(world[y][x].tile == "water") {
+        drawY -= waves[x];
+    }
+
     if(world[y][x].build && world[y][x].build != "") {
-        ctx.drawImage(assets.build[world[y][x].build], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+        if(world[y][x].buildRot || world[y][x].buildRot === 0) {
+            ctx.drawImage(assets.build[world[y][x].build + "_" + world[y][x].buildRot], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+        } else {
+            ctx.drawImage(assets.build[world[y][x].build], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+        }
+    }
+    
+    if(hoverTile && hoverTile.x == x && hoverTile.y == y && selectedBuild && !world[y][x].tile.startsWith("water")) {
+        ctx.globalAlpha = 0.75;
+        ctx.drawImage(assets.build[selectedBuild + "_" + selectedRot], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+        ctx.globalAlpha = 1;
     }
 }
 
 function calcWave(now) {
     let a = [];
     for(let x = 0; x < MAP_W; x++) {
-        a.push(zoom / 16 * Math.round(1.5 * Math.sin((now + 0.5 * (x))) + 0.5));
+        a.push(zoom / 16 * Math.round(1 * Math.sin((now + 0.5 * (x))) + 1));
     }
     return a;
 }

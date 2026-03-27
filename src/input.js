@@ -9,7 +9,9 @@ export let mouseY = 0;
 export let hoverTile = null;
 export let cameraX = 0;
 export let cameraY = (0.5 * MAP_H) * (0.5 * zoom);
-console.log(cameraY);
+
+export let selectedBuild = null;
+export let selectedRot = 0;
 
 const keysPressed = {};
 const cameraSpeed = 5;
@@ -69,13 +71,12 @@ export function setupInput() {
     });
 
     canvas.addEventListener("click", () => {
-        if (hoverTile) {
+        if (hoverTile && selectedBuild) {
             let tile = world[hoverTile.y][hoverTile.x];
-            if (tile.tile == "grass") {
-                tile.build = "house" + Math.ceil(Math.random() * 6);
-            } else if (tile.tile == "sand") {
-                tile.build = "dock1";
-            }
+            tile.build = selectedBuild;
+            tile.buildRot = selectedRot;
+
+            console.log(tile);
         }
     });
 
@@ -89,7 +90,7 @@ export function setupInput() {
     window.addEventListener("keyup", handleKeyUp);
 }
 
-export function updateCamera(dt) {
+export function updateControls(dt) {
     let cs;
 
     dt = dt / 16;
@@ -100,16 +101,36 @@ export function updateCamera(dt) {
         cs = cameraSpeed * dt;
     }
 
-    if (keysPressed['w'] || keysPressed['arrowup']) {
-        cameraY -= cs;
+    let dx = 0;
+    let dy = 0;
+
+    if (keysPressed['w'] || keysPressed['arrowup']) dy -= 1;
+    if (keysPressed['s'] || keysPressed['arrowdown']) dy += 1;
+    if (keysPressed['a'] || keysPressed['arrowleft']) dx -= 1;
+    if (keysPressed['d'] || keysPressed['arrowright']) dx += 1;
+
+    if (dx !== 0 || dy !== 0) {
+        const len = Math.hypot(dx, dy);
+        dx /= len;
+        dy /= len;
     }
-    if (keysPressed['s'] || keysPressed['arrowdown']) {
-        cameraY += cs;
+
+    cameraX += dx * cs;
+    cameraY += dy * cs;
+
+    if(keysPressed['r']) {
+        selectedRot += 1;
+        if(selectedRot > 3) selectedRot = 0;
+        keysPressed['r'] = false;
     }
-    if (keysPressed['a'] || keysPressed['arrowleft']) {
-        cameraX -= cs;
-    }
-    if (keysPressed['d'] || keysPressed['arrowright']) {
-        cameraX += cs;
+
+    if(keysPressed['e']) {
+        if(selectedBuild) {
+            selectedBuild = null;
+        } else {
+            selectedBuild = "lighthouse1";
+        }
+
+        keysPressed['e'] = false;
     }
 }
