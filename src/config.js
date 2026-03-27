@@ -19,7 +19,7 @@ export const updateScale = function() {
     TILE_W = 1 * zoom;
     TILE_H = 0.5 * zoom;
     IMAGE_W = 1 * zoom;
-    IMAGE_H = 2 * zoom;
+    IMAGE_H = 3 * zoom;
 }
 
 export const offsetX = canvas.width / 2;

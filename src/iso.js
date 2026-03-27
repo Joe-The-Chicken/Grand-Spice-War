@@ -1,4 +1,4 @@
-import { TILE_W, TILE_H, IMAGE_W, IMAGE_H, offsetX, offsetY } from "./config.js";
+import { TILE_W, TILE_H, IMAGE_H, offsetX, offsetY } from "./config.js";
 
 export function cartToIso(x, y) {
     return {

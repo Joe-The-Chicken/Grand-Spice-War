@@ -34,7 +34,7 @@ function getVisibleBounds(cx, cy) {
 export function draw(cx, cy) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const bounds = getVisibleBounds(cx, cy);
-    const now = Date.now() / 500;
+    const now = Date.now() / 250;
 
     // layer -1 - ground
     for (let y = bounds.minY; y < bounds.maxY; y++) {
@@ -46,7 +46,7 @@ export function draw(cx, cy) {
             
             if(zoom > 32) {
                 if(world[y][x].tile == "water" || world[y][x].tile == "water_dark" || world[y][x].tile == "water_darker") {
-                    drawY += zoom / 16 * (Math.round(1 * Math.sin((now + 0.5 * (x - y)))));
+                    drawY += zoom / 16 * (Math.round(2 * Math.sin((now + 0.5 * (x)))));
                 }
             }
 
@@ -70,7 +70,7 @@ export function draw(cx, cy) {
 
         if(zoom > 32) {
             if(world[y][x].tile == "water" || world[y][x].tile == "water_dark" || world[y][x].tile == "water_darker") {
-                drawY += zoom / 16 * (Math.round(1 * Math.sin((now + 0.5 * (x - y)))));
+                drawY += zoom / 16 * (Math.round(1 * Math.sin((now + 0.5 * (x)))));
             }
         }
 
