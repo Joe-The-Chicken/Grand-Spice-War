@@ -3,6 +3,9 @@ export const ctx = canvas.getContext("2d");
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+canvas.addEventListener('contextmenu', (event) => {
+  event.preventDefault();
+});
 
 export let TILE_W, TILE_H, IMAGE_W, IMAGE_H;
 

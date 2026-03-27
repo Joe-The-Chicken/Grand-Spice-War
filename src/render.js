@@ -36,64 +36,64 @@ export function draw(cx, cy) {
     const bounds = getVisibleBounds(cx, cy);
     const now = Date.now() / 250;
 
-    // layer -1 - ground
-    for (let y = bounds.minY; y < bounds.maxY; y++) {
-        for (let x = bounds.minX; x < bounds.maxX; x++) {
-            const iso = cartToIso(x, y);
+    const minSum = bounds.minX + bounds.minY;
+    const maxSum = bounds.maxX + bounds.maxY;
 
-            let drawX = iso.x + offsetX - IMAGE_W / 2 - cx;
-            let drawY = iso.y + offsetY - IMAGE_H - cy;
-            
-            if(zoom > 32) {
-                if(world[y][x].tile == "water" || world[y][x].tile == "water_dark" || world[y][x].tile == "water_darker") {
-                    drawY += zoom / 16 * (Math.round(2 * Math.sin((now + 0.5 * (x)))));
-                }
-            }
+    for (let i = minSum; i <= maxSum; i++) {
+        const startX = Math.max(bounds.minX, i - bounds.maxY);
+        const endX = Math.min(bounds.maxX, i - bounds.minY);
 
-            ctx.drawImage(
-                assets.tile[world[y][x].tile],
-                drawX,
-                drawY + TILE_H,
-                IMAGE_W,
-                IMAGE_H
-            );
+        for (let x = startX; x <= endX; x++) {
+            renderAt(x, i - x, cx, cy, now);
         }
     }
 
-    // layer 0 - cursor
-    if (hoverTile) {
-        const iso = cartToIso(hoverTile.x, hoverTile.y);
-        let drawX = iso.x + offsetX - IMAGE_W / 2 - cx;
-        let drawY = iso.y + offsetY - IMAGE_H - cy;
-        let x = hoverTile.x;
-        let y = hoverTile.y;
+    if (!hoverTile) return;
 
-        if(zoom > 32) {
-            if(world[y][x].tile == "water" || world[y][x].tile == "water_dark" || world[y][x].tile == "water_darker") {
-                drawY += zoom / 16 * (Math.round(1 * Math.sin((now + 0.5 * (x)))));
-            }
+    const iso = cartToIso(hoverTile.x, hoverTile.y);
+
+    let drawX = iso.x + offsetX - IMAGE_W / 2 - cx;
+    let drawY = iso.y + offsetY - IMAGE_H - cy;
+
+    let x = hoverTile.x;
+    let y = hoverTile.y;
+
+    if(zoom > 32) {
+        if(world[y][x].tile.startsWith("water")) {
+            drawY += zoom / 16 * (Math.round(1.5 * Math.sin((now + 0.5 * (x))) + 0.5));
         }
+    }
+    
+    ctx.drawImage(assets.misc.cursor, drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+}
 
-        ctx.drawImage(assets.misc.cursor, drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+function renderAt(x,y,cx,cy, now) {
+    const iso = cartToIso(x, y);
+
+    let drawX = iso.x + offsetX - IMAGE_W / 2 - cx;
+    let drawY = iso.y + offsetY - IMAGE_H - cy;
+    
+    if(zoom > 32) {
+        if(world[y][x].tile.startsWith("water")) {
+            drawY += zoom / 16 * (Math.round(1.5 * Math.sin((now + 0.5 * (x))) + 0.5));
+        }
     }
 
-    // layer 1 - buildings
-    for (let y = bounds.minY; y < bounds.maxY; y++) {
-        for (let x = bounds.minX; x < bounds.maxX; x++) {
-            const iso = cartToIso(x, y);
+    ctx.drawImage(
+        assets.tile[world[y][x].tile],
+        drawX,
+        drawY + TILE_H,
+        IMAGE_W,
+        IMAGE_H
+    );
 
-            const drawX = iso.x + offsetX - IMAGE_W / 2 - cx;
-            const drawY = iso.y + offsetY - IMAGE_H - cy;
-
-            if (world[y][x].build !== "") {
-                ctx.drawImage(
-                    assets.build[world[y][x].build],
-                    drawX,
-                    drawY + TILE_H,
-                    IMAGE_W,
-                    IMAGE_H
-                );
-            }
-        }
+    if (world[y][x].build !== "") {
+        ctx.drawImage(
+            assets.build[world[y][x].build],
+            drawX,
+            drawY + TILE_H,
+            IMAGE_W,
+            IMAGE_H
+        );
     }
 }

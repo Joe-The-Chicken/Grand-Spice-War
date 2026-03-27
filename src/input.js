@@ -12,12 +12,12 @@ export let cameraY = (0.5 * MAP_H) * (0.5 * zoom);
 console.log(cameraY);
 
 const keysPressed = {};
-const cameraSpeed = 15;
+const cameraSpeed = 10;
 
 export function setupInput() {
     function updateCursor(e) {
         mouseX = e.clientX;
-        mouseY = e.clientY - IMAGE_H + TILE_H;
+        mouseY = e.clientY - IMAGE_H / 2;
 
         const tile = isoToCart(mouseX + cameraX, mouseY + cameraY);
 
@@ -70,7 +70,12 @@ export function setupInput() {
 
     canvas.addEventListener("click", () => {
         if (hoverTile) {
-            world[hoverTile.y][hoverTile.x].build = "house" + Math.ceil(Math.random() * 6);
+            let tile = world[hoverTile.y][hoverTile.x];
+            if (tile.tile == "grass") {
+                tile.build = "house" + Math.ceil(Math.random() * 6);
+            } else if (tile.tile == "sand") {
+                tile.build = "dock1";
+            }
         }
     });
 
@@ -85,16 +90,24 @@ export function setupInput() {
 }
 
 export function updateCamera() {
+    let cs;
+
+    if(keysPressed['shift']) {
+        cs = cameraSpeed * 2;
+    } else {
+        cs = cameraSpeed;
+    }
+
     if (keysPressed['w'] || keysPressed['arrowup']) {
-        cameraY -= cameraSpeed;
+        cameraY -= cs;
     }
     if (keysPressed['s'] || keysPressed['arrowdown']) {
-        cameraY += cameraSpeed;
+        cameraY += cs;
     }
     if (keysPressed['a'] || keysPressed['arrowleft']) {
-        cameraX -= cameraSpeed;
+        cameraX -= cs;
     }
     if (keysPressed['d'] || keysPressed['arrowright']) {
-        cameraX += cameraSpeed;
+        cameraX += cs;
     }
 }
