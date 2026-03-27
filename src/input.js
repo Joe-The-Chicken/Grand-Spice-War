@@ -2,6 +2,7 @@ import { canvas, IMAGE_W, IMAGE_H, TILE_W, TILE_H, MAP_W, MAP_H, MIN_SCALE, MAX_
 import { isoToCart } from "./iso.js";
 import { zoom, setZoom, updateScale } from "./config.js";
 import { world } from "./world.js";
+import { UIBoundsY } from "./ui.js";
 
 export let mouseX = 0;
 export let mouseY = 0;
@@ -20,7 +21,7 @@ export function setupInput() {
 
         const tile = isoToCart(mouseX + cameraX, mouseY + cameraY);
 
-        if (tile.x >= 0 && tile.y >= 0 && tile.x < MAP_W && tile.y < MAP_H) {
+        if (tile.x >= 0 && tile.y >= 0 && tile.x < MAP_W && tile.y < MAP_H && e.clientY < canvas.height - UIBoundsY && e.clientY > UIBoundsY) {
             hoverTile = tile;
         } else {
             hoverTile = null;

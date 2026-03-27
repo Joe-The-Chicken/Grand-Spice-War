@@ -9,6 +9,7 @@ export const assets = {
     misc: {},
     tile: {},
     build: {},
+    ui: {},
 };
 
 // dependencies
@@ -39,3 +40,8 @@ assets.build.house3 = loadImage("assets/build_3.png");
 assets.build.house4 = loadImage("assets/build_4.png");
 assets.build.house5 = loadImage("assets/build_5.png");
 assets.build.house6 = loadImage("assets/build_6.png");
+
+// ui
+assets.ui.hud1 = loadImage("assets/ui_1.png");
+assets.ui.hud2 = loadImage("assets/ui_2.png");
+assets.ui.hud3 = loadImage("assets/ui_3.png");

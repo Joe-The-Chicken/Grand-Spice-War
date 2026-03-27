@@ -6,9 +6,9 @@ canvas.height = window.innerHeight;
 
 export let TILE_W, TILE_H, IMAGE_W, IMAGE_H;
 
-export let zoom = 16;
-export const MAX_SCALE = 16;
-export const MIN_SCALE = 128;
+export let zoom = 36;
+export const MAX_SCALE = 32;
+export const MIN_SCALE = 196;
 
 export const setZoom = function(a) {zoom = a;}
 

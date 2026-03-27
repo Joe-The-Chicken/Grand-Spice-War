@@ -34,6 +34,7 @@ function getVisibleBounds(cx, cy) {
 export function draw(cx, cy) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const bounds = getVisibleBounds(cx, cy);
+    const now = Date.now() / 500;
 
     // layer -1 - ground
     for (let y = bounds.minY; y < bounds.maxY; y++) {
@@ -42,9 +43,11 @@ export function draw(cx, cy) {
 
             let drawX = iso.x + offsetX - IMAGE_W / 2 - cx;
             let drawY = iso.y + offsetY - IMAGE_H - cy;
-
-            if(world[y][x].tile == "water" || world[y][x].tile == "water_dark" || world[y][x].tile == "water_darker") {
-                drawY += zoom / 16 * (Math.round(1 * Math.sin((Date.now()/500 + 0.5 * (x - y)))));
+            
+            if(zoom > 32) {
+                if(world[y][x].tile == "water" || world[y][x].tile == "water_dark" || world[y][x].tile == "water_darker") {
+                    drawY += zoom / 16 * (Math.round(1 * Math.sin((now + 0.5 * (x - y)))));
+                }
             }
 
             ctx.drawImage(
@@ -65,8 +68,10 @@ export function draw(cx, cy) {
         let x = hoverTile.x;
         let y = hoverTile.y;
 
-        if(world[y][x].tile == "water" || world[y][x].tile == "water_dark" || world[y][x].tile == "water_darker") {
-            drawY += zoom / 16 * (Math.round(1 * Math.sin((Date.now()/500 + 0.5 * (x - y)))));
+        if(zoom > 32) {
+            if(world[y][x].tile == "water" || world[y][x].tile == "water_dark" || world[y][x].tile == "water_darker") {
+                drawY += zoom / 16 * (Math.round(1 * Math.sin((now + 0.5 * (x - y)))));
+            }
         }
 
         ctx.drawImage(assets.misc.cursor, drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
