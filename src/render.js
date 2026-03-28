@@ -1,6 +1,6 @@
 import { canvas, ctx, IMAGE_W, IMAGE_H, TILE_W, TILE_H, MAP_W, MAP_H, offsetX, offsetY, zoom } from "./config.js";
 import { hoverTile, cameraX, cameraY, selectedBuild, selectedRot } from "./input.js";
-import { assets } from "./assets.js";
+import { assetData, assets } from "./assets.js";
 import { cartToIso, isoToCart } from "./iso.js"
 import { world } from "./world.js";
 import { makeNoise2D } from "./noise.js";
@@ -95,16 +95,21 @@ function renderAt(x,y,cx,cy) {
     }
 
     if(world[y][x].build && world[y][x].build != "") {
-        if(world[y][x].buildRot || world[y][x].buildRot === 0) {
+        if(assetData.build[world[y][x].build].canRotate) {
             ctx.drawImage(assets.build[world[y][x].build + "_" + world[y][x].buildRot], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
         } else {
             ctx.drawImage(assets.build[world[y][x].build], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
         }
     }
     
-    if(hoverTile && hoverTile.x == x && hoverTile.y == y && selectedBuild && !world[y][x].tile.startsWith("water")) {
+    if(hoverTile && hoverTile.x == x && hoverTile.y == y && selectedBuild && assetData.build[selectedBuild].surfaces.includes(world[hoverTile.y][hoverTile.x].tile)) {
+        let buildName = selectedBuild;
+        if(assetData.build[selectedBuild].canRotate) {
+            buildName += "_" + selectedRot;
+        }
+
         ctx.globalAlpha = 0.75;
-        ctx.drawImage(assets.build[selectedBuild + "_" + selectedRot], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+        ctx.drawImage(assets.build[buildName], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
         ctx.globalAlpha = 1;
     }
 }

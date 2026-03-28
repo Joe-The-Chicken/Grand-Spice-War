@@ -3,6 +3,7 @@ import { isoToCart } from "./iso.js";
 import { zoom, setZoom, updateScale } from "./config.js";
 import { world } from "./world.js";
 import { UIBoundsY } from "./ui.js";
+import { assetData, assets } from "./assets.js";
 
 export let mouseX = 0;
 export let mouseY = 0;
@@ -12,6 +13,10 @@ export let cameraY = (0.5 * MAP_H) * (0.5 * zoom);
 
 export let selectedBuild = null;
 export let selectedRot = 0;
+
+export function setSelectedBuild(build = null) {
+    selectedBuild = build;
+}
 
 const keysPressed = {};
 const cameraSpeed = 5;
@@ -71,7 +76,7 @@ export function setupInput() {
     });
 
     canvas.addEventListener("click", () => {
-        if (hoverTile && selectedBuild) {
+        if (hoverTile && selectedBuild && assetData.build[selectedBuild].surfaces.includes(world[hoverTile.y][hoverTile.x].tile)) {
             let tile = world[hoverTile.y][hoverTile.x];
             tile.build = selectedBuild;
             tile.buildRot = selectedRot;
@@ -118,7 +123,7 @@ export function updateControls(dt) {
     cameraX += dx * cs;
     cameraY += dy * cs;
 
-    if(keysPressed['r']) {
+    if(keysPressed['r'] && assetData.build[selectedBuild]?.canRotate) {
         selectedRot += 1;
         if(selectedRot > 3) selectedRot = 0;
         keysPressed['r'] = false;
@@ -128,7 +133,7 @@ export function updateControls(dt) {
         if(selectedBuild) {
             selectedBuild = null;
         } else {
-            selectedBuild = "lighthouse1";
+            selectedBuild = "house1";
         }
 
         keysPressed['e'] = false;
