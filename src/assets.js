@@ -15,6 +15,8 @@ export const assets = {
 // misc
 assets.misc.cursor = loadImage("assets/misc/cursor.png");
 
+assets.build.castle = loadImage("assets/build/castle_1.png");
+
 // === Tiles ===
 assets.tile.void = loadImage("assets/tile/tile_0.png");
 assets.tile.grass = loadImage("assets/tile/tile_1.png");
@@ -76,10 +78,17 @@ assets.build.lighthouse1_1 = loadImage("assets/build/build_8-1.png");
 assets.build.lighthouse1_2 = loadImage("assets/build/build_8-2.png");
 assets.build.lighthouse1_3 = loadImage("assets/build/build_8-3.png");
 
+assets.build.rig1 = loadImage("assets/build/build_9.png");
+
+assets.build.security1 = loadImage("assets/build/build_10.png");
+assets.build.security2 = loadImage("assets/build/build_11.png");
+
 // === UI ===
 assets.ui.hud1 = loadImage("assets/ui/ui_1.png");
 assets.ui.hud2 = loadImage("assets/ui/ui_2.png");
 assets.ui.hud3 = loadImage("assets/ui/ui_3.png");
+assets.ui.hud4 = loadImage("assets/ui/ui_4.png");
+assets.ui.hud5 = loadImage("assets/ui/ui_5.png");
 
 assets.misc.font1 = new FontFace("Tiny5", "url(assets/misc/Tiny5-Regular.ttf)");
 
@@ -96,11 +105,12 @@ export const assetData = {
 }
 
 class Build {
-    constructor({ cost = 0, shore = false, canRotate = true, surfaces = ["grass", "sand"] }) {
+    constructor({ cost = 0, shore = false, canRotate = true, surfaces = ["grass", "sand"], menuScale = 4 }) {
         this.cost = cost;
         this.canRotate = canRotate;
         this.shore = shore; // has to be built neighboring a shore tile (rot matters)
         this.surfaces = surfaces;
+        this.menuScale = menuScale;
     }
 }
 
@@ -122,3 +132,8 @@ assetData.build.house6 = new Build({ cost: 350 });
 assetData.build.dock1 = new Build({ cost: 500, shore: true, surfaces: ["water", "water_dark", "water_darker"] });
 
 assetData.build.lighthouse1 = new Build({ cost: 800 });
+
+assetData.build.rig1 = new Build({ cost: 500, canRotate: false, surfaces: ["water_darker"] });
+
+assetData.build.security1 = new Build({ cost: 200, canRotate: false });
+assetData.build.security2 = new Build({ cost: 300, canRotate: false });

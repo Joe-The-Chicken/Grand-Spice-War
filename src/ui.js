@@ -1,10 +1,13 @@
 import { canvas, ctx } from "./config.js";
-import { assets } from "./assets.js";
+import { assets, assetData } from "./assets.js";
 import { selectedBuild, setSelectedBuild, cameraX, cameraY } from "./input.js";
 import { zoom } from "./config.js";
+import uiData from "./uiData.js";
+import { hasCastle } from "./input.js";
 
 const size = canvas.width * 1/4;
 export const UIBoundsY = size * 0.25;
+export let UIHover = false;
 
 let mx = 0;
 let my = 0;
@@ -23,17 +26,28 @@ class Hitbox {
 }
 
 class UIButton {
-    constructor(img, {pos = { x: 0, y: 0 }, anchor = { x: 0, y: 0 }} = {}, w, h) {
+    constructor(img, {pos = { x: 0, y: 0 }, anchor = { x: 0, y: 0 }} = {}, w, h, event) {
         this.img = img;
         this.pos = pos;
         this.anchor = anchor;
         this.w = w;
         this.h = h;
-        this.hitbox = new Hitbox(
-            pos.x + (anchor.x * canvas.width - w * anchor.x),
-            pos.y + (anchor.y * canvas.height - h * anchor.y),
-            w,
-            h
+
+        if(event) {
+            canvas.addEventListener("click", (e) => {
+                if (this.checkHover()) {
+                    event();
+                }
+            });
+        }
+    }
+
+    getHitbox() {
+        return new Hitbox(
+            this.pos.x + (this.anchor.x * canvas.width - this.w * this.anchor.x),
+            this.pos.y + (this.anchor.y * canvas.height - this.h * this.anchor.y),
+            this.w,
+            this.h
         );
     }
 
@@ -46,31 +60,45 @@ class UIButton {
     }
 
     draw() {
-        ctx.drawImage(this.img, this.hitbox.x, this.hitbox.y, this.w, this.h);
+        ctx.drawImage(this.img, this.getHitbox().x, this.getHitbox().y, this.w, this.h);
     }
 
     checkHover() {
-        return this.hitbox.contains(mx, my);
+        return this.getHitbox().contains(mx, my);
     }
 }
 
 class UIImage {
-    constructor(img, {pos = { x: 0, y: 0 }, anchor = { x: 0, y: 0 }} = {}, w, h) {
-        this.img = img;
+    constructor({img, getImg}, {pos = { x: 0, y: 0 }, anchor = { x: 0, y: 0 }} = {}, w, h) {
+        if(img) {
+            this.imgType = "static";
+            this.img = img;
+        } else {
+            this.imgType = "variable";
+            this.img = () => getImg();
+        }
+
         this.pos = pos;
         this.anchor = anchor;
         this.w = w;
         this.h = h;
-        this.hitbox = new Hitbox(
-            pos.x + (anchor.x * canvas.width - w * anchor.x),
-            pos.y + (anchor.y * canvas.height - h * anchor.y),
-            w,
-            h
+    }
+
+    getHitbox() {
+        return new Hitbox(
+            this.pos.x + (this.anchor.x * canvas.width - this.w * this.anchor.x),
+            this.pos.y + (this.anchor.y * canvas.height - this.h * this.anchor.y),
+            this.w,
+            this.h
         );
     }
 
     draw() {
-        ctx.drawImage(this.img, this.hitbox.x, this.hitbox.y, this.w, this.h);
+        ctx.drawImage(this.imgType == "variable" ? this.img() : this.img, this.getHitbox().x, this.getHitbox().y, this.w, this.h);
+    }
+
+    checkHover() {
+        return this.getHitbox().contains(mx, my);
     }
 }
 
@@ -100,11 +128,19 @@ class UIText {
     setText(newText) {
         this.text = newText;
     }
+
+    checkHover() {
+        return false;
+    }
 }
 
 let UI = [];
-UI.push(new UIImage(assets.ui.hud1, { anchor: { x: 0.5, y: 0 } }, size, size * 0.25));
-UI.push(new UIImage(assets.ui.hud2, { anchor: { x: 0.5, y: 1 } }, size * 2, size * 0.25));
+let ActiveUI = [];
+let ActiveUI_ID = 0;
+let ActiveUI_State = [];
+
+UI.push(new UIImage({img: assets.ui.hud1}, { anchor: { x: 0.5, y: 0 } }, size, size * 0.25));
+UI.push(new UIImage({img: assets.ui.hud2}, { anchor: { x: 0.5, y: 1 } }, size * 2, size * 0.25));
 
 UI.push(new UIButton(assets.ui.hud3, { pos: {x: size / 16, y: 0}, anchor: { x: 0, y: 1 } }, size * 0.25, size * 0.25));
 UI.push(new UIButton(assets.ui.hud3, { pos: {x: 6 * size / 16, y: 0}, anchor: { x: 0, y: 1 } }, size * 0.25, size * 0.25));
@@ -117,53 +153,74 @@ UI.push(new UIButton(assets.ui.hud3, { pos: {x: -11 * size / 16, y: 0}, anchor: 
 UI.push(new UIText("SPICETOWN", { pos: { x: 0, y: 2 * size / 64 }, anchor: { x: 0.5, y: 0 } }, `${3 * size / 32}px Tiny5`));
 UI.push(new UIText("- SPICETOWN -", { pos: { x: 0, y: 9 * size / 64 }, anchor: { x: 0.5, y: 0 } }, `${3 * size / 64}px Tiny5`));
 
+function createMenu(id, x, anchor_x) {
+    if (ActiveUI_ID === id) {
+        ActiveUI_ID = 0;
+        ActiveUI = [];
+        ActiveUI_State = [];
+        return;
+    }
+
+    ActiveUI = [];
+    ActiveUI_State = [];
+
+    const data = uiData[id];
+
+    for (let i = 0; i < data.length; i++) {
+        ActiveUI_State[i] = 0;
+
+        ActiveUI.push({
+            button: new UIButton(
+                (i === data.length - 1 ? assets.ui.hud4 : assets.ui.hud5),
+                { pos: { x: x, y: -4 * (i + 1) * size / 16 + size / 64 }, anchor: { x: anchor_x, y: 1 } },
+                size * 0.25,
+                size * 0.25,
+                () => {
+                    const state = Math.floor(ActiveUI_State[i]);
+                    data[i][state].action();
+                }
+            ),
+
+            image: new UIImage(
+                {
+                    getImg: () => {
+                        const state = Math.floor(ActiveUI_State[i]);
+                        return data[i][state].image();
+                    }
+                },
+                { pos: { x: x - size / 16 + size / 8, y: -4 * (i + 1) * size / 16 + size / 64 - size / 16 + 5 * size / 32 }, anchor: { x: anchor_x, y: 1 } },
+                size / 32 * data[i][0].data().menuScale,
+                3 * size / 32 * data[i][0].data().menuScale
+            )
+        });
+    }
+
+    ActiveUI_ID = id;
+}
+
 
 UI[2].attachEvent(() => {
-    if(selectedBuild) {
-        setSelectedBuild();
-    } else {
-        setSelectedBuild("house1");
-    }
+    createMenu(1, size / 16, 0);
 });
 
 UI[3].attachEvent(() => {
-    if(selectedBuild) {
-        setSelectedBuild();
-    } else {
-        setSelectedBuild("house2");
-    }
+    createMenu(2, 6 * size / 16, 0);
 });
 
 UI[4].attachEvent(() => {
-    if(selectedBuild) {
-        setSelectedBuild();
-    } else {
-        setSelectedBuild("house3");
-    }
+    createMenu(3, 11 * size / 16, 0);
 });
 
 UI[5].attachEvent(() => {
-    if(selectedBuild) {
-        setSelectedBuild();
-    } else {
-        setSelectedBuild("dock1");
-    }
+    createMenu(4, -size / 16, 1);
 });
 
 UI[6].attachEvent(() => {
-    if(selectedBuild) {
-        setSelectedBuild();
-    } else {
-        setSelectedBuild("lighthouse1");
-    }
+    createMenu(5, -6 * size / 16, 1);
 });
 
 UI[7].attachEvent(() => {
-    if(selectedBuild) {
-        setSelectedBuild();
-    } else {
-        setSelectedBuild("");
-    }
+    createMenu(6, -11 * size / 16, 1);
 });
 
 function updateTexts() {
@@ -177,13 +234,43 @@ function updateTexts() {
 }
 
 export function drawUI() {
+    if(!hasCastle) return;
+    
+    UIHover = false;
+
     updateTexts();
+    for(let element of ActiveUI) {
+        element.button.draw();
+        element.image.draw();
+        if(element.button.checkHover()) {
+            UIHover = true;
+        }
+    }
     for(let element of UI) {
         element.draw();
+        if(element.checkHover()) {
+            UIHover = true;
+        }
     }
 }
 
 canvas.addEventListener("mousemove", (e) => {
     mx = e.clientX;
     my = e.clientY;
+});
+
+canvas.addEventListener("wheel", (e) => {
+    const data = uiData[ActiveUI_ID];
+
+    for (let i = 0; i < ActiveUI.length; i++) {
+        const item = ActiveUI[i];
+
+        if (item.button.checkHover()) {
+            ActiveUI_State[i] -= e.deltaX / 30;
+
+            const max = data[i].length;
+            if (ActiveUI_State[i] < 0) ActiveUI_State[i] = max - 1;
+            if (ActiveUI_State[i] >= max) ActiveUI_State[i] = 0;
+        }
+    }
 });

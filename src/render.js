@@ -1,5 +1,5 @@
 import { canvas, ctx, IMAGE_W, IMAGE_H, TILE_W, TILE_H, MAP_W, MAP_H, offsetX, offsetY, zoom } from "./config.js";
-import { hoverTile, cameraX, cameraY, selectedBuild, selectedRot } from "./input.js";
+import { hoverTile, cameraX, cameraY, selectedBuild, selectedRot, hasCastle } from "./input.js";
 import { assetData, assets } from "./assets.js";
 import { cartToIso, isoToCart } from "./iso.js"
 import { world } from "./world.js";
@@ -68,7 +68,7 @@ export function draw(cx, cy) {
         drawY += waves[x];
     }
     
-    if(!selectedBuild) {
+    if(!selectedBuild && hasCastle) {
         ctx.drawImage(assets.misc.cursor, drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
     }
 }
@@ -88,21 +88,36 @@ function renderAt(x,y,cx,cy) {
         drawY += waves[x];
     }
     
-    ctx.drawImage(assets.tile[world[y][x].tile], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+    ctx.drawImage(assets.tile[world[y][x].tile], drawX, drawY + 2 * TILE_H, IMAGE_W, IMAGE_H);
 
     if(world[y][x].tile == "water") {
         drawY -= waves[x];
     }
 
-    if(world[y][x].build && world[y][x].build != "") {
+    if(world[y][x].hasCastle) {
+        const iso2 = cartToIso(x, y);
+        let dx = iso2.x + offsetX - IMAGE_W - cx;
+        let dy = iso2.y + offsetY - 3.5 * IMAGE_W - cy + TILE_H;
+        ctx.drawImage(assets.build.castle, dx, dy, IMAGE_W * 2, IMAGE_W * 4);
+    }
+
+    if(world[y][x].build && world[y][x].build != "" && !bordersCastle(x,y)) {
         if(assetData.build[world[y][x].build].canRotate) {
             ctx.drawImage(assets.build[world[y][x].build + "_" + world[y][x].buildRot], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
         } else {
-            ctx.drawImage(assets.build[world[y][x].build], drawX, drawY + TILE_H, IMAGE_W, IMAGE_H);
+            ctx.drawImage(assets.build[world[y][x].build], drawX, drawY + 2 * TILE_H, IMAGE_W, IMAGE_H);
         }
     }
-    
-    if(hoverTile && hoverTile.x == x && hoverTile.y == y && selectedBuild && assetData.build[selectedBuild].surfaces.includes(world[hoverTile.y][hoverTile.x].tile)) {
+
+    if(!hasCastle && hoverTile && hoverTile.x == x && hoverTile.y == y) {
+        const iso2 = cartToIso(x, y);
+        let dx = iso2.x + offsetX - IMAGE_W - cx;
+        let dy = iso2.y + offsetY - 3.5 * IMAGE_W - cy + TILE_H;
+
+        ctx.globalAlpha = 0.75;
+        ctx.drawImage(assets.build.castle, dx, dy, IMAGE_W * 2, IMAGE_W * 4);
+        ctx.globalAlpha = 1;
+    } else if(hoverTile && hoverTile.x == x && hoverTile.y == y && selectedBuild && assetData.build[selectedBuild].surfaces.includes(world[hoverTile.y][hoverTile.x].tile)) {
         let buildName = selectedBuild;
         if(assetData.build[selectedBuild].canRotate) {
             buildName += "_" + selectedRot;
@@ -120,4 +135,23 @@ function calcWave(now) {
         a.push(zoom / 16 * Math.round(1 * Math.sin((now + 0.5 * (x))) + 1));
     }
     return a;
+}
+
+function bordersCastle(x, y) {
+    const dirs = [
+        [0,0],[1,0],[1,1],[0,1]
+    ];
+
+    for (const [dx, dy] of dirs) {
+        const nx = x + dx;
+        const ny = y + dy;
+
+        if (nx < 0 || ny < 0 || nx >= MAP_W || ny >= MAP_H) continue;
+
+        if (world[ny][nx].hasCastle) {
+            return true;
+        }
+    }
+
+    return false;
 }

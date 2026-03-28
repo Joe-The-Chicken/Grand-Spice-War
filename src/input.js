@@ -2,7 +2,7 @@ import { canvas, IMAGE_W, IMAGE_H, TILE_W, TILE_H, MAP_W, MAP_H, MIN_SCALE, MAX_
 import { isoToCart } from "./iso.js";
 import { zoom, setZoom, updateScale } from "./config.js";
 import { world } from "./world.js";
-import { UIBoundsY } from "./ui.js";
+import { UIHover } from "./ui.js";
 import { assetData, assets } from "./assets.js";
 
 export let mouseX = 0;
@@ -13,6 +13,8 @@ export let cameraY = (0.5 * MAP_H) * (0.5 * zoom);
 
 export let selectedBuild = null;
 export let selectedRot = 0;
+
+export let hasCastle = false;
 
 export function setSelectedBuild(build = null) {
     selectedBuild = build;
@@ -28,8 +30,9 @@ export function setupInput() {
 
         const tile = isoToCart(mouseX + cameraX, mouseY + cameraY);
 
-        if (tile.x >= 0 && tile.y >= 0 && tile.x < MAP_W && tile.y < MAP_H && e.clientY < canvas.height - UIBoundsY && e.clientY > UIBoundsY) {
+        if (tile.x >= 0 && tile.y >= 0 && tile.x < MAP_W && tile.y < MAP_H && !UIHover) {
             hoverTile = tile;
+            console.log(world[tile.y][tile.x].build);
         } else {
             hoverTile = null;
         }
@@ -37,6 +40,8 @@ export function setupInput() {
 
     function updateZoom(e) {
         e.preventDefault();
+
+        if(UIHover) return;
 
         const zoomSpeed = 1.1;
         const oldZoom = zoom;
@@ -76,6 +81,13 @@ export function setupInput() {
     });
 
     canvas.addEventListener("click", () => {
+        if(!hasCastle) {
+            world[hoverTile.y][hoverTile.x].hasCastle = true;
+            //world[hoverTile.y][hoverTile.x].tile = "stone";
+            hasCastle = true;
+            return;
+        }
+
         if (hoverTile && selectedBuild && assetData.build[selectedBuild].surfaces.includes(world[hoverTile.y][hoverTile.x].tile)) {
             let tile = world[hoverTile.y][hoverTile.x];
             tile.build = selectedBuild;
